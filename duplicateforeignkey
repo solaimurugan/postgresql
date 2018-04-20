@@ -1,0 +1,27 @@
+SELECT
+    pc.conname as constraint_name, 
+    --conrelid as child_table_id,   
+    pclsc.relname as child_table,
+    --pc.conkey as child_column_id,
+    pac.attname as child_column,
+    --confrelid as parent_table_id,
+    pclsp.relname as parent_table,
+    --pc.confkey as parent_column_id,
+    pap.attname as parent_column,   
+    nspname as schema_name
+FROM 
+    (
+    SELECT
+         connamespace,conname, unnest(conkey) as "conkey", unnest(confkey)
+          as "confkey" , conrelid, confrelid, contype
+     FROM
+        pg_constraint
+    ) pc
+    JOIN pg_namespace pn ON pc.connamespace = pn.oid
+    -- and pn.nspname = 'panmydesk4400'
+    JOIN pg_class pclsc ON pc.conrelid = pclsc.oid
+    JOIN pg_class pclsp ON      pc.confrelid = pclsp.oid
+    JOIN pg_attribute pac ON pc.conkey = pac.attnum    and pac.attrelid =       pclsc.oid
+    JOIN pg_attribute pap ON pc.confkey = pap.attnum and pap.attrelid = pclsp.oid
+
+ORDER BY pclsc.relname
